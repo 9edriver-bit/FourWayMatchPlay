@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Four‑Way Match Play Scorer</title>
+  <style>
+    :root{
+      --bg:#0b5d2a;          /* TV-style green */
+      --panel:#0e7a36;
+      --panel-dark:#0c6a2f;
+      --text:#ffffff;
+      --muted:#c8e6c9;
+      --accent:#ffdf5d;      /* gold accent */
+      --danger:#ff6b6b;
+      --ok:#9be69b;
+      --shadow:0 8px 20px rgba(0,0,0,.25);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg),#064b22 70%);
+      color:var(--text);
+      min-height:100dvh;
+    }
+    header{
+      padding:16px 14px; position:sticky; top:0; z-index:20;
+      background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0));
+      backdrop-filter:saturate(1.2) blur(2px);
+    }
+    .logo{font-weight:800; letter-spacing:.4px;}
+    .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+
+    .card{
+      background:linear-gradient(180deg,var(--panel),var(--panel-dark));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px; margin:14px 0;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    h1,h2,h3{margin:6px 0 10px; font-weight:800}
+    h1{font-size:1.55rem}
+    h2{font-size:1.25rem}
+    h3{font-size:1.05rem; color:var(--muted)}
+    p{margin:8px 0 12px; color:#eef8ee}
+
+    .grid{display:grid; gap:12px}
+    .cols-2{grid-template-columns:repeat(2,1fr)}
+    .cols-3{grid-template-columns:repeat(3,1fr)}
+    .cols-4{grid-template-columns:repeat(4,1fr)}
+
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+      background:#124f27; color:var(--text); border:1px solid rgba(255,255,255,.12);
+      padding:12px 14px; border-radius:14px; font-weight:700; cursor:pointer;
+      transition:.15s transform,.15s background,.15s box-shadow;
+      box-shadow:0 2px 0 rgba(0,0,0,.35);
+      user-select:none; -webkit-tap-highlight-color:transparent;
+    }
+    .btn:hover{background:#176634}
+    .btn:active{transform:translateY(1px)}
+    .btn[disabled]{opacity:.45; pointer-events:none}
+    .btn.primary{background:linear-gradient(180deg,#1a8d43,#14793a); border-color:rgba(0,0,0,.2)}
+    .btn.gold{background:linear-gradient(180deg,#ffe27e,#efc849); color:#2a2500; border-color:#d9b12b}
+    .btn.ghost{background:transparent; border-color:rgba(255,255,255,.25)}
+
+    .pill{padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18); font-weight:700;
+      background:rgba(0,0,0,.12)}
+
+    .kbd{font-variant-numeric:tabular-nums; background:rgba(0,0,0,.18); padding:4px 8px; border-radius:8px}
+
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .grow{flex:1}
+    input[type="text"], input[type="number"]{
+      width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.22);
+      background:rgba(0,0,0,.18); color:var(--text); font-weight:700;
+    }
+
+    /* Stepper */
+    .stepper{display:flex; gap:8px; margin-bottom:12px}
+    .step{display:flex; align-items:center; gap:8px}
+    .step .dot{width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-weight:800;
+      background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.18)}
+    .step.done .dot{background:var(--ok); color:#053a13}
+    .step.active .dot{background:var(--accent); color:#3a3200}
+
+    /* Score keypad */
+    .keypad{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
+    .keypad .btn{padding:14px 0}
+
+    /* Match grid */
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px}
+    th,td{padding:10px 12px; text-align:center; font-weight:800}
+    thead th{background:rgba(0,0,0,.15)}
+    tbody tr:nth-child(odd) td{background:rgba(0,0,0,.10)}
+    tbody tr:nth-child(even) td{background:rgba(0,0,0,.05)}
+    td.self{background:rgba(255,255,255,.04); color:#bcd9bd}
+    .badge{display:inline-block; padding:4px 8px; border-radius:999px; background:rgba(0,0,0,.28); font-size:.85rem}
+    .up{background:#2fbf71; color:#08361c}
+    .down{background:#ff9aa2; color:#4a0808}
+    .as{background:#ffe27e; color:#3d2f00}
+
+    .footer{opacity:.8; font-size:.9rem; margin-top:8px}
+
+    /* Mobile tweaks */
+    @media (max-width:760px){
+      h1{font-size:1.25rem}
+      .cols-3{grid-template-columns:repeat(2,1fr)}
+      .cols-4{grid-template-columns:repeat(2,1fr)}
+      th,td{padding:8px 8px}
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="row" style="align-items:center; justify-content:space-between">
+      <div class="logo">🏌️‍♂️ Four‑Way Match Play</div>
+      <div class="row">
+        <button class="btn ghost" id="resumeBtn" style="display:none">↩︎ Resume</button>
+        <button class="btn ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" id="wizard">
+      <div class="stepper" id="stepper"></div>
+
+      <!-- Step 1: Players count -->
+      <div class="step-card" data-step="1">
+        <h1>Step 1 — Select number of players</h1>
+        <p>Choose how many golfers are playing today.</p>
+        <div class="grid cols-4" id="playerCountBtns"></div>
+        <div class="footer">Supports 2–4 players for round‑robin match play.</div>
+      </div>
+
+      <!-- Step 2: Enter names -->
+      <div class="step-card" data-step="2" hidden>
+        <h1>Step 2 — Enter player names</h1>
+        <div id="nameInputs" class="grid cols-2"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost" data-prev>Back</button>
+          <button class="btn primary" data-next>Next</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Holes and stakes -->
+      <div class="step-card" data-step="3" hidden>
+        <h1>Step 3 — Round setup</h1>
+        <div class="grid cols-3">
+          <div class="card" style="padding:12px">
+            <h3>Holes</h3>
+            <div class="row" id="holesBtns"></div>
+          </div>
+          <div class="card" style="padding:12px">
+            <h3>Play for money?</h3>
+            <div class="row" id="moneyBtns"></div>
+          </div>
+          <div class="card" style="padding:12px">
+            <h3>Bet type & amount</h3>
+            <div class="row">
+              <button class="btn" id="straightBtn">Straight</button>
+              <button class="btn" id="nassauBtn" title="18 holes only">Nassau</button>
+              <input type="number" id="betAmount" class="grow" min="1" step="1" placeholder="$ Units" />
+            </div>
+            <div class="footer">Nassau awards Front, Back, and Overall (3 units); enabled only for 18 holes.</div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn ghost" data-prev>Back</button>
+          <button class="btn gold" id="startRoundBtn">Start Round</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live scoring -->
+    <section class="card" id="scoring" hidden>
+      <div class="row" style="align-items:center; justify-content:space-between">
+        <div>
+          <h1 id="roundTitle">Match Scoring</h1>
+          <div class="row" id="playerTags"></div>
+        </div>
+        <div class="pill">Holes: <span id="holesPill">—</span> • Bet: <span id="betPill">None</span></div>
+      </div>
+
+      <div class="card" style="padding:14px; margin-top:10px">
+        <div class="row" style="align-items:center; justify-content:space-between; gap:10px">
+          <div class="row" style="align-items:center; gap:10px">
+            <span class="pill">Hole <span id="holeNum">1</span></span>
+            <button class="btn ghost" id="prevHole">◀ Prev</button>
+            <button class="btn ghost" id="nextHole">Next ▶</button>
+          </div>
+          <div class="pill">Enter scores (1–10)</div>
+        </div>
+        <div id="keypads"></div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:8px">Head‑to‑Head Match Grid</h2>
+        <div id="matchGrid"></div>
+        <div id="payouts" class="footer"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  // ---------- State & Storage ----------
+  const STORE_KEY = 'four_way_match_play_v3';
+  let state = {
+    numPlayers: 4,
+    players: ['Player 1','Player 2','Player 3','Player 4'],
+    holes: 18,
+    money: { playing:false, type:'straight', unit:10 },
+    scores: [], // [holeIndex][playerIndex] = number | null
+    hole: 1
+  };
+
+  function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)); }catch{ return null; } }
+  function clearStore(){ localStorage.removeItem(STORE_KEY); }
+
+  // ---------- Utilities ----------
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+  function initScores(){
+    state.scores = Array.from({length: state.holes}, ()=> Array(state.numPlayers).fill(null));
+  }
+
+  function stepLabels(){
+    return [
+      'Players', 'Names', 'Round'
+    ];
+  }
+
+  function renderStepper(activeStep=1){
+    const labels = stepLabels();
+    const el = $('#stepper'); el.innerHTML = '';
+    labels.forEach((lab,i)=>{
+      const div = document.createElement('div');
+      div.className = 'step' + (i+1===activeStep ? ' active' : i+1<activeStep ? ' done' : '');
+      div.innerHTML = `<div class="dot">${i+1}</div> <div>${lab}</div>`;
+      el.appendChild(div);
+    });
+  }
+
+  // ---------- Wizard: Step 1 ----------
+  function renderStep1(){
+    renderStepper(1);
+    const box = $('#playerCountBtns');
+    box.innerHTML = '';
+    [2,3,4].forEach(n=>{
+      const b = document.createElement('button');
+      b.className = 'btn';
+      if(state.numPlayers===n) b.classList.add('primary');
+      b.textContent = n + ' Players';
+      b.onclick = ()=>{
+        state.numPlayers = n; save();
+        showStep(2);
+      };
+      box.appendChild(b);
+    });
+  }
+
+  // ---------- Wizard: Step 2 ----------
+  function renderStep2(){
+    renderStepper(2);
+    $('#nameInputs').innerHTML = '';
+    for(let i=0;i<state.numPlayers;i++){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<label style="display:block; margin-bottom:6px; font-weight:700">Player ${i+1}</label>
+        <input type="text" id="pname_${i}" value="${state.players[i]||''}" placeholder="Name" />`;
+      $('#nameInputs').appendChild(wrap);
+    }
+    $('[data-prev]').onclick = ()=> showStep(1);
+    $('[data-next]').onclick = ()=>{
+      for(let i=0;i<state.numPlayers;i++){
+        const v = (document.getElementById('pname_'+i).value||'').trim();
+        state.players[i] = v || `Player ${i+1}`;
+      }
+      save();
+      showStep(3);
+    }
+  }
+
+  // ---------- Wizard: Step 3 ----------
+  function renderStep3(){
+    renderStepper(3);
+    // Holes
+    const hb = $('#holesBtns'); hb.innerHTML = '';
+    [9,18].forEach(h=>{
+      const b = document.createElement('button');
+      b.className = 'btn' + (state.holes===h?' primary':'');
+      b.textContent = h + ' Holes';
+      b.onclick = ()=>{ state.holes = h; if(state.money.type==='nassau' && h!==18){ state.money.type='straight'; }
+        save(); renderStep3(); };
+      hb.appendChild(b);
+    });
+
+    // Money?
+    const mb = $('#moneyBtns'); mb.innerHTML = '';
+    ['No','Yes'].forEach((lab,idx)=>{
+      const b = document.createElement('button');
+      b.className = 'btn' + (state.money.playing===!!idx?' primary':'');
+      b.textContent = lab;
+      b.onclick = ()=>{ state.money.playing = !!idx; save(); renderStep3(); };
+      mb.appendChild(b);
+    });
+
+    // Bet type + amount
+    const straightBtn = $('#straightBtn');
+    const nassauBtn = $('#nassauBtn');
+    const betInput = $('#betAmount');
+
+    straightBtn.classList.toggle('primary', state.money.type==='straight');
+    nassauBtn.classList.toggle('primary', state.money.type==='nassau');
+    nassauBtn.disabled = state.holes!==18;
+
+    betInput.value = state.money.unit ?? 10;
+
+    straightBtn.onclick = ()=>{ state.money.type='straight'; save(); renderStep3(); };
+    nassauBtn.onclick = ()=>{ if(state.holes===18){ state.money.type='nassau'; save(); renderStep3(); } };
+    betInput.oninput = e=>{ state.money.unit = clamp(parseInt(e.target.value||'10',10),1,10000); save(); };
+
+    // Start
+    $('#startRoundBtn').onclick = ()=>{
+      initScores();
+      state.hole = 1; save();
+      $('#wizard').hidden = true; $('#scoring').hidden = false;
+      renderScoring();
+    };
+
+    $('[data-prev]').onclick = ()=> showStep(2);
+  }
+
+  function showStep(n){
+    $$('.step-card').forEach(el=>{ el.hidden = el.dataset.step != n; });
+    if(n===1) renderStep1();
+    if(n===2) renderStep2();
+    if(n===3) renderStep3();
+  }
+
+  // ---------- Scoring UI ----------
+  function renderScoring(){
+    // header pills
+    $('#holesPill').textContent = state.holes;
+    $('#betPill').textContent = state.money.playing ? (state.money.type==='nassau'?'Nassau ':'Straight ') + `$${state.money.unit}` : 'None';
+
+    // player tags
+    const pt = $('#playerTags'); pt.innerHTML='';
+    state.players.slice(0,state.numPlayers).forEach((name,i)=>{
+      const tag = document.createElement('div');
+      tag.className='pill'; tag.textContent = name;
+      pt.appendChild(tag);
+    });
+
+    // hole controls & keypads
+    $('#holeNum').textContent = state.hole;
+    const keypads = $('#keypads'); keypads.innerHTML='';
+    for(let i=0;i<state.numPlayers;i++){
+      const card = document.createElement('div');
+      card.className = 'card'; card.style.padding='12px';
+      const head = document.createElement('div'); head.className='row'; head.style.justifyContent='space-between';
+      head.innerHTML = `<strong>${state.players[i]}</strong> <span class="badge">Hole ${state.hole} Score: ${state.scores[state.hole-1]?.[i]??'—'}</span>`;
+      card.appendChild(head);
+      const grid = document.createElement('div'); grid.className='keypad';
+      for(let n=1;n<=10;n++){
+        const b = document.createElement('button'); b.className='btn'; b.textContent=n;
+        if(state.scores[state.hole-1]?.[i]===n) b.classList.add('primary');
+        b.onclick = ()=>{ setScore(state.hole-1,i,n); renderScoring(); };
+        grid.appendChild(b);
+      }
+      const clear = document.createElement('button'); clear.className='btn ghost'; clear.textContent='Clear';
+      clear.onclick = ()=>{ setScore(state.hole-1,i,null); renderScoring(); };
+      const row = document.createElement('div'); row.className='row'; row.style.marginTop='8px'; row.appendChild(clear);
+      card.appendChild(grid); card.appendChild(row);
+      keypads.appendChild(card);
+    }
+
+    // prev/next
+    $('#prevHole').onclick = ()=>{ state.hole = clamp(state.hole-1,1,state.holes); save(); renderScoring(); };
+    $('#nextHole').onclick = ()=>{ state.hole = clamp(state.hole+1,1,state.holes); save(); renderScoring(); };
+
+    // grid + payouts
+    renderMatchGrid();
+    renderPayouts();
+  }
+
+  function setScore(holeIdx, playerIdx, val){
+    state.scores[holeIdx][playerIdx] = val===null?null:clamp(parseInt(val,10),1,10);
+    save();
+  }
+
+  // ---------- Match Logic ----------
+  function pairs(){
+    const ps=[]; for(let i=0;i<state.numPlayers;i++){ for(let j=i+1;j<state.numPlayers;j++){ ps.push([i,j]); } }
+    return ps;
+  }
+
+  function matchStatus(i,j, uptoHole = state.holes){
+    // returns {diff, text}
+    let diff = 0; // positive means i is up
+    for(let h=0; h<uptoHole; h++){
+      const a = state.scores[h]?.[i];
+      const b = state.scores[h]?.[j];
+      if(a!=null && b!=null){
+        if(a<b) diff += 1; else if(a>b) diff -= 1; // lower score wins hole
+      }
+    }
+    let text = 'AS';
+    if(diff>0) text = `${state.players[i]} ${Math.abs(diff)} Up`;
+    if(diff<0) text = `${state.players[j]} ${Math.abs(diff)} Up`;
+    return {diff, text};
+  }
+
+  function segmentWinner(i,j,start,end){
+    const {diff} = matchStatus(i,j,end);
+    const before = matchStatus(i,j,start-1).diff; // diff up to previous hole
+    const segDiff = diff - before; // net change across the segment
+    if(segDiff>0) return i; if(segDiff<0) return j; return null; // null = halved
+  }
+
+  function renderMatchGrid(){
+    const grid = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    trh.appendChild(document.createElement('th')); // corner
+    state.players.slice(0,state.numPlayers).forEach(n=>{
+      const th = document.createElement('th'); th.textContent=n; trh.appendChild(th);
+    });
+    thead.appendChild(trh); grid.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    for(let i=0;i<state.numPlayers;i++){
+      const tr = document.createElement('tr');
+      const rowH = document.createElement('th'); rowH.textContent = state.players[i]; tr.appendChild(rowH);
+      for(let j=0;j<state.numPlayers;j++){
+        const td = document.createElement('td');
+        if(i===j){ td.textContent='—'; td.className='self'; }
+        else if(j<i){ // mirror cell
+          td.textContent='';
+        } else {
+          const {diff} = matchStatus(i,j, state.hole); // live status up to current hole
+          const span = document.createElement('span');
+          const label = diff===0 ? 'AS' : (diff>0? `${Math.abs(diff)} Up` : `${Math.abs(diff)} Down`);
+          span.className = 'badge ' + (diff===0?'as': diff>0?'up':'down');
+          span.textContent = label;
+          td.appendChild(span);
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    $('#matchGrid').innerHTML='';
+    $('#matchGrid').appendChild(grid);
+  }
+
+  function renderPayouts(){
+    if(!state.money.playing){ $('#payouts').textContent=''; return; }
+    const unit = Number(state.money.unit||0);
+    const lines=[];
+    const pr = pairs();
+
+    function pairName([i,j]){ return `${state.players[i]} vs ${state.players[j]}`; }
+
+    if(state.money.type==='straight'){
+      pr.forEach(p=>{
+        const [i,j] = p;
+        const final = matchStatus(i,j, state.holes).diff;
+        let txt = `${pairName(p)} — `;
+        if(final>0) txt += `${state.players[i]} wins $${unit}`;
+        else if(final<0) txt += `${state.players[j]} wins $${unit}`;
+        else txt += `PUSH`;
+        lines.push(txt);
+      });
+    } else { // Nassau (18‑hole only)
+      const segs = [ [1,9,'Front'], [10,18,'Back'], [1,18,'Overall'] ];
+      pr.forEach(p=>{
+        const [i,j] = p; const parts=[];
+        segs.forEach(([s,e,label])=>{
+          const w = segmentWinner(i,j,s,e);
+          if(w===null) parts.push(`${label}: PUSH`);
+          else parts.push(`${label}: ${state.players[w]} +$${unit}`);
+        });
+        lines.push(`${pairName(p)} — ${parts.join(' • ')}`);
+      });
+    }
+
+    $('#payouts').innerHTML = '<strong>Payouts:</strong> ' + lines.join(' &nbsp; | &nbsp; ');
+  }
+
+  // ---------- Resume / Reset ----------
+  function tryShowResume(){
+    const saved = load();
+    if(saved){ $('#resumeBtn').style.display='inline-flex'; }
+    $('#resumeBtn').onclick = ()=>{
+      Object.assign(state, saved);
+      $('#wizard').hidden = true; $('#scoring').hidden = false;
+      renderScoring();
+    };
+  }
+
+  $('#resetBtn').onclick = ()=>{
+    if(confirm('Reset and clear saved round?')){ clearStore(); location.reload(); }
+  };
+
+  // ---------- Boot ----------
+  (function boot(){
+    renderStep1();
+    tryShowResume();
+  })();
+  </script>
+</body>
+</html>
