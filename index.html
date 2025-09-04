@@ -3,92 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Four‑Way Match Play Scorer</title>
+  <title>Four-Way Match Play Scorer</title>
   <style>
     :root{
-      --bg:#0b5d2a;          /* TV-style green */
-      --panel:#0e7a36;
-      --panel-dark:#0c6a2f;
-      --text:#ffffff;
-      --muted:#c8e6c9;
-      --accent:#ffdf5d;      /* gold accent */
-      --danger:#ff6b6b;
-      --ok:#9be69b;
-      --shadow:0 8px 20px rgba(0,0,0,.25);
-      --radius:18px;
+      --bg:#0b5d2a; --panel:#0e7a36; --panel-dark:#0c6a2f; --text:#ffffff;
+      --muted:#c8e6c9; --accent:#ffdf5d; --danger:#ff6b6b; --ok:#9be69b;
+      --shadow:0 8px 20px rgba(0,0,0,.25); --radius:18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
       background:linear-gradient(180deg,var(--bg),#064b22 70%);
-      color:var(--text);
-      min-height:100dvh;
+      color:var(--text); min-height:100dvh;
     }
-    header{
-      padding:16px 14px; position:sticky; top:0; z-index:20;
-      background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0));
-      backdrop-filter:saturate(1.2) blur(2px);
-    }
+    header{padding:16px 14px; position:sticky; top:0; z-index:20;
+      background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0)); backdrop-filter:saturate(1.2) blur(2px);}
     .logo{font-weight:800; letter-spacing:.4px;}
     .wrap{max-width:1100px; margin:0 auto; padding:16px;}
-
     .card{
       background:linear-gradient(180deg,var(--panel),var(--panel-dark));
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px; margin:14px 0;
-      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius); box-shadow:var(--shadow);
+      padding:18px; margin:14px 0; border:1px solid rgba(255,255,255,.08);
     }
     h1,h2,h3{margin:6px 0 10px; font-weight:800}
-    h1{font-size:1.55rem}
-    h2{font-size:1.25rem}
-    h3{font-size:1.05rem; color:var(--muted)}
+    h1{font-size:1.55rem} h2{font-size:1.25rem} h3{font-size:1.05rem; color:var(--muted)}
     p{margin:8px 0 12px; color:#eef8ee}
-
     .grid{display:grid; gap:12px}
     .cols-2{grid-template-columns:repeat(2,1fr)}
     .cols-3{grid-template-columns:repeat(3,1fr)}
     .cols-4{grid-template-columns:repeat(4,1fr)}
-
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .pill{padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18); font-weight:700; background:rgba(0,0,0,.12)}
     .btn{display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
       background:#124f27; color:var(--text); border:1px solid rgba(255,255,255,.12);
       padding:12px 14px; border-radius:14px; font-weight:700; cursor:pointer;
-      transition:.15s transform,.15s background,.15s box-shadow;
-      box-shadow:0 2px 0 rgba(0,0,0,.35);
-      user-select:none; -webkit-tap-highlight-color:transparent;
-    }
-    .btn:hover{background:#176634}
-    .btn:active{transform:translateY(1px)}
-    .btn[disabled]{opacity:.45; pointer-events:none}
-    .btn.primary{background:linear-gradient(180deg,#1a8d43,#14793a); border-color:rgba(0,0,0,.2)}
-    .btn.gold{background:linear-gradient(180deg,#ffe27e,#efc849); color:#2a2500; border-color:#d9b12b}
+      transition:.15s transform,.15s background,.15s box-shadow; box-shadow:0 2px 0 rgba(0,0,0,.35);
+      user-select:none; -webkit-tap-highlight-color:transparent;}
+    .btn:hover{background:#176634} .btn:active{transform:translateY(1px)} .btn[disabled]{opacity:.45; pointer-events:none}
+    .btn.primary{background:linear-gradient(180deg,#1a8d43,#14793a)} .btn.gold{background:linear-gradient(180deg,#ffe27e,#efc849); color:#2a2500}
     .btn.ghost{background:transparent; border-color:rgba(255,255,255,.25)}
-
-    .pill{padding:10px 12px; border-radius:999px; border:1px solid rgba(255,255,255,.18); font-weight:700;
-      background:rgba(0,0,0,.12)}
-
-    .kbd{font-variant-numeric:tabular-nums; background:rgba(0,0,0,.18); padding:4px 8px; border-radius:8px}
-
-    .row{display:flex; gap:10px; flex-wrap:wrap}
-    .grow{flex:1}
     input[type="text"], input[type="number"]{
       width:100%; padding:12px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.22);
       background:rgba(0,0,0,.18); color:var(--text); font-weight:700;
     }
-
-    /* Stepper */
     .stepper{display:flex; gap:8px; margin-bottom:12px}
     .step{display:flex; align-items:center; gap:8px}
     .step .dot{width:24px; height:24px; border-radius:50%; display:grid; place-items:center; font-weight:800;
       background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.18)}
     .step.done .dot{background:var(--ok); color:#053a13}
     .step.active .dot{background:var(--accent); color:#3a3200}
-
-    /* Score keypad */
-    .keypad{display:grid; grid-template-columns:repeat(5,1fr); gap:8px;}
+    .keypad{display:grid; grid-template-columns:repeat(6,1fr); gap:8px;}
     .keypad .btn{padding:14px 0}
-
-    /* Match grid */
     table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px}
     th,td{padding:10px 12px; text-align:center; font-weight:800}
     thead th{background:rgba(0,0,0,.15)}
@@ -96,13 +61,19 @@
     tbody tr:nth-child(even) td{background:rgba(0,0,0,.05)}
     td.self{background:rgba(255,255,255,.04); color:#bcd9bd}
     .badge{display:inline-block; padding:4px 8px; border-radius:999px; background:rgba(0,0,0,.28); font-size:.85rem}
+    .badge.score.selected{background:#ffe27e; color:#2a2500; box-shadow:0 0 0 2px rgba(0,0,0,.25) inset;}
     .up{background:#2fbf71; color:#08361c}
     .down{background:#ff9aa2; color:#4a0808}
     .as{background:#ffe27e; color:#3d2f00}
-
     .footer{opacity:.8; font-size:.9rem; margin-top:8px}
 
-    /* Mobile tweaks */
+    /* Head-to-head grid visuals (stronger borders so it's obvious) */
+    #matchGrid table.h2h { width:100%; border-collapse:separate; border-spacing:0; border-radius:14px; overflow:hidden; }
+    #matchGrid thead th { background:rgba(0,0,0,.15); border-bottom:1px solid rgba(255,255,255,.12); }
+    #matchGrid th, #matchGrid td { border-right:1px solid rgba(255,255,255,.08); }
+    #matchGrid tr > *:last-child { border-right:none; }
+    #matchGrid tbody td { background:rgba(0,0,0,.06); }
+
     @media (max-width:760px){
       h1{font-size:1.25rem}
       .cols-3{grid-template-columns:repeat(2,1fr)}
@@ -114,7 +85,7 @@
 <body>
   <header class="wrap">
     <div class="row" style="align-items:center; justify-content:space-between">
-      <div class="logo">🏌️‍♂️ Four‑Way Match Play</div>
+      <div class="logo">🏌️‍♂️ Four-Way Match Play</div>
       <div class="row">
         <button class="btn ghost" id="resumeBtn" style="display:none">↩︎ Resume</button>
         <button class="btn ghost" id="resetBtn">Reset</button>
@@ -123,57 +94,55 @@
   </header>
 
   <main class="wrap">
-    <section class="card" id="wizard">
+    <!-- Step 1 -->
+    <section class="card step-card" data-step="1" id="step1">
       <div class="stepper" id="stepper"></div>
+      <h1>Step 1 — Select number of players</h1>
+      <p>Choose how many golfers are playing today.</p>
+      <div class="grid cols-4" id="playerCountBtns"></div>
+      <div class="footer">Supports 2–4 players for round-robin match play.</div>
+    </section>
 
-      <!-- Step 1: Players count -->
-      <div class="step-card" data-step="1">
-        <h1>Step 1 — Select number of players</h1>
-        <p>Choose how many golfers are playing today.</p>
-        <div class="grid cols-4" id="playerCountBtns"></div>
-        <div class="footer">Supports 2–4 players for round‑robin match play.</div>
-      </div>
-
-      <!-- Step 2: Enter names -->
-      <div class="step-card" data-step="2" hidden>
-        <h1>Step 2 — Enter player names</h1>
-        <div id="nameInputs" class="grid cols-2"></div>
-        <div class="row" style="margin-top:12px">
-          <button class="btn ghost" data-prev>Back</button>
-          <button class="btn primary" data-next>Next</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Holes and stakes -->
-      <div class="step-card" data-step="3" hidden>
-        <h1>Step 3 — Round setup</h1>
-        <div class="grid cols-3">
-          <div class="card" style="padding:12px">
-            <h3>Holes</h3>
-            <div class="row" id="holesBtns"></div>
-          </div>
-          <div class="card" style="padding:12px">
-            <h3>Play for money?</h3>
-            <div class="row" id="moneyBtns"></div>
-          </div>
-          <div class="card" style="padding:12px">
-            <h3>Bet type & amount</h3>
-            <div class="row">
-              <button class="btn" id="straightBtn">Straight</button>
-              <button class="btn" id="nassauBtn" title="18 holes only">Nassau</button>
-              <input type="number" id="betAmount" class="grow" min="1" step="1" placeholder="$ Units" />
-            </div>
-            <div class="footer">Nassau awards Front, Back, and Overall (3 units); enabled only for 18 holes.</div>
-          </div>
-        </div>
-        <div class="row" style="margin-top:12px">
-          <button class="btn ghost" data-prev>Back</button>
-          <button class="btn gold" id="startRoundBtn">Start Round</button>
-        </div>
+    <!-- Step 2 -->
+    <section class="card step-card" data-step="2" id="step2" hidden>
+      <div class="stepper" id="stepper2"></div>
+      <h1>Step 2 — Enter player names</h1>
+      <div id="nameInputs" class="grid cols-2"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost" id="backTo1">Back</button>
+        <button class="btn primary" id="toStep3">Next</button>
       </div>
     </section>
 
-    <!-- Live scoring -->
+    <!-- Step 3 -->
+    <section class="card step-card" data-step="3" id="step3" hidden>
+      <div class="stepper" id="stepper3"></div>
+      <h1>Step 3 — Round setup</h1>
+      <div class="grid cols-3">
+        <div class="card" style="padding:12px">
+          <h3>Holes</h3>
+          <div class="row" id="holesBtns"></div>
+        </div>
+        <div class="card" style="padding:12px">
+          <h3>Play for money?</h3>
+          <div class="row" id="moneyBtns"></div>
+        </div>
+        <div class="card" style="padding:12px">
+          <h3>Bet type & amount</h3>
+          <div class="row">
+            <button class="btn" id="straightBtn">Straight</button>
+            <button class="btn" id="nassauBtn" title="18 holes only">Nassau</button>
+            <input type="number" id="betAmount" class="grow" min="1" step="1" placeholder="$ Units" />
+          </div>
+          <div class="footer">Nassau awards Front, Back, and Overall (3 units); enabled only for 18 holes.</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn gold" id="startRoundBtn">Start Round</button>
+      </div>
+    </section>
+
+    <!-- Scoring -->
     <section class="card" id="scoring" hidden>
       <div class="row" style="align-items:center; justify-content:space-between">
         <div>
@@ -190,13 +159,13 @@
             <button class="btn ghost" id="prevHole">◀ Prev</button>
             <button class="btn ghost" id="nextHole">Next ▶</button>
           </div>
-          <div class="pill">Enter scores (1–10)</div>
+          <div class="pill">Enter scores (← 3 4 5 6 →)</div>
         </div>
         <div id="keypads"></div>
       </div>
 
       <div class="card">
-        <h2 style="margin-bottom:8px">Head‑to‑Head Match Grid</h2>
+        <h2 style="margin-bottom:8px">Head-to-Head Match Grid</h2>
         <div id="matchGrid"></div>
         <div id="payouts" class="footer"></div>
       </div>
@@ -204,111 +173,105 @@
   </main>
 
   <script>
-  // ---------- State & Storage ----------
-  const STORE_KEY = 'four_way_match_play_v3';
+  // --------- State ---------
+  const STORE_KEY = 'four_way_match_play_v4';
   let state = {
     numPlayers: 4,
-    players: ['Player 1','Player 2','Player 3','Player 4'],
+    players: ['','','',''], // blank by default; fallback labels only for display
     holes: 18,
-    money: { playing:false, type:'straight', unit:10 },
-    scores: [], // [holeIndex][playerIndex] = number | null
+    money: { playing:false, type:'straight', unit:'' },
+    scores: [], // [hole][player] -> score or null
     hole: 1
   };
 
-  function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
-  function load(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)); }catch{ return null; } }
-  function clearStore(){ localStorage.removeItem(STORE_KEY); }
-
-  // ---------- Utilities ----------
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
   const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+  const save = ()=> localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  const load = ()=> { try{return JSON.parse(localStorage.getItem(STORE_KEY));}catch{return null;} };
+  const clearStore = ()=> localStorage.removeItem(STORE_KEY);
 
   function initScores(){
     state.scores = Array.from({length: state.holes}, ()=> Array(state.numPlayers).fill(null));
   }
 
-  function stepLabels(){
-    return [
-      'Players', 'Names', 'Round'
-    ];
-  }
-
-  function renderStepper(activeStep=1){
-    const labels = stepLabels();
-    const el = $('#stepper'); el.innerHTML = '';
+  // --------- Stepper ---------
+  function renderStepper(targetId, active){
+    const labels = ['Players','Names','Round'];
+    const el = document.getElementById(targetId);
+    if(!el) return;
+    el.innerHTML = '';
     labels.forEach((lab,i)=>{
       const div = document.createElement('div');
-      div.className = 'step' + (i+1===activeStep ? ' active' : i+1<activeStep ? ' done' : '');
+      div.className = 'step' + (i+1===active ? ' active' : i+1<active ? ' done' : '');
       div.innerHTML = `<div class="dot">${i+1}</div> <div>${lab}</div>`;
       el.appendChild(div);
     });
   }
 
-  // ---------- Wizard: Step 1 ----------
+  function showStep(n){
+    $$('.step-card').forEach(sec=> sec.hidden = sec.dataset.step != String(n));
+    renderStepper('stepper', n);
+    renderStepper('stepper2', n);
+    renderStepper('stepper3', n);
+  }
+
+  // --------- Step 1 ---------
   function renderStep1(){
-    renderStepper(1);
-    const box = $('#playerCountBtns');
-    box.innerHTML = '';
+    const box = $('#playerCountBtns'); box.innerHTML = '';
     [2,3,4].forEach(n=>{
       const b = document.createElement('button');
-      b.className = 'btn';
-      if(state.numPlayers===n) b.classList.add('primary');
+      b.className = 'btn' + (state.numPlayers===n?' primary':'');
       b.textContent = n + ' Players';
-      b.onclick = ()=>{
-        state.numPlayers = n; save();
-        showStep(2);
-      };
+      b.onclick = ()=>{ state.numPlayers = n; save(); showStep(2); renderStep2(); };
       box.appendChild(b);
     });
   }
 
-  // ---------- Wizard: Step 2 ----------
+  // --------- Step 2 ---------
   function renderStep2(){
-    renderStepper(2);
-    $('#nameInputs').innerHTML = '';
+    const wrap = $('#nameInputs'); wrap.innerHTML='';
     for(let i=0;i<state.numPlayers;i++){
-      const wrap = document.createElement('div');
-      wrap.innerHTML = `<label style="display:block; margin-bottom:6px; font-weight:700">Player ${i+1}</label>
+      const dv = document.createElement('div');
+      dv.innerHTML = `<label style="display:block; margin-bottom:6px; font-weight:700">Player ${i+1}</label>
         <input type="text" id="pname_${i}" value="${state.players[i]||''}" placeholder="Name" />`;
-      $('#nameInputs').appendChild(wrap);
+      wrap.appendChild(dv);
     }
-    $('[data-prev]').onclick = ()=> showStep(1);
-    $('[data-next]').onclick = ()=>{
+    $('#backTo1').onclick = ()=> showStep(1);
+    $('#toStep3').onclick = ()=>{
       for(let i=0;i<state.numPlayers;i++){
-        const v = (document.getElementById('pname_'+i).value||'').trim();
-        state.players[i] = v || `Player ${i+1}`;
+        const v = ($('#pname_'+i).value||'').trim();
+        state.players[i] = v; // keep blank if blank
       }
       save();
-      showStep(3);
-    }
+      showStep(3); renderStep3();
+    };
   }
 
-  // ---------- Wizard: Step 3 ----------
+  // --------- Step 3 ---------
   function renderStep3(){
-    renderStepper(3);
-    // Holes
-    const hb = $('#holesBtns'); hb.innerHTML = '';
+    // holes
+    const hb = $('#holesBtns'); hb.innerHTML='';
     [9,18].forEach(h=>{
       const b = document.createElement('button');
       b.className = 'btn' + (state.holes===h?' primary':'');
       b.textContent = h + ' Holes';
-      b.onclick = ()=>{ state.holes = h; if(state.money.type==='nassau' && h!==18){ state.money.type='straight'; }
-        save(); renderStep3(); };
+      b.onclick = ()=>{ state.holes = h; if(state.money.type==='nassau' && h!==18) state.money.type='straight'; save(); renderStep3(); };
       hb.appendChild(b);
     });
 
-    // Money?
-    const mb = $('#moneyBtns'); mb.innerHTML = '';
+    // money yes/no
+    const mb = $('#moneyBtns'); mb.innerHTML='';
     ['No','Yes'].forEach((lab,idx)=>{
+      const val = !!idx;
       const b = document.createElement('button');
-      b.className = 'btn' + (state.money.playing===!!idx?' primary':'');
+      b.className = 'btn' + (state.money.playing===val?' primary':'');
       b.textContent = lab;
-      b.onclick = ()=>{ state.money.playing = !!idx; save(); renderStep3(); };
+      b.onclick = ()=>{ state.money.playing = val; save(); renderStep3(); };
       mb.appendChild(b);
     });
 
-    // Bet type + amount
+    // bet type + value
     const straightBtn = $('#straightBtn');
     const nassauBtn = $('#nassauBtn');
     const betInput = $('#betAmount');
@@ -317,72 +280,86 @@
     nassauBtn.classList.toggle('primary', state.money.type==='nassau');
     nassauBtn.disabled = state.holes!==18;
 
-    betInput.value = state.money.unit ?? 10;
-
+    betInput.value = (state.money.unit!=='' && state.money.unit!=null) ? state.money.unit : '';
     straightBtn.onclick = ()=>{ state.money.type='straight'; save(); renderStep3(); };
     nassauBtn.onclick = ()=>{ if(state.holes===18){ state.money.type='nassau'; save(); renderStep3(); } };
-    betInput.oninput = e=>{ state.money.unit = clamp(parseInt(e.target.value||'10',10),1,10000); save(); };
-
-    // Start
-    $('#startRoundBtn').onclick = ()=>{
-      initScores();
-      state.hole = 1; save();
-      $('#wizard').hidden = true; $('#scoring').hidden = false;
-      renderScoring();
+    betInput.oninput = (e)=>{
+      const n = parseInt(e.target.value||'',10);
+      state.money.unit = Number.isFinite(n) ? n : '';
+      save();
     };
 
-    $('[data-prev]').onclick = ()=> showStep(2);
+    // start round
+    $('#startRoundBtn').onclick = ()=>{
+      initScores();
+      state.hole = 1;
+      save();
+      $('#step1').hidden = true; $('#step2').hidden = true; $('#step3').hidden = true;
+      $('#scoring').hidden = false;
+      renderScoring();
+    };
   }
 
-  function showStep(n){
-    $$('.step-card').forEach(el=>{ el.hidden = el.dataset.step != n; });
-    if(n===1) renderStep1();
-    if(n===2) renderStep2();
-    if(n===3) renderStep3();
-  }
-
-  // ---------- Scoring UI ----------
+  // --------- Scoring ---------
   function renderScoring(){
-    // header pills
+    // Pills
     $('#holesPill').textContent = state.holes;
-    $('#betPill').textContent = state.money.playing ? (state.money.type==='nassau'?'Nassau ':'Straight ') + `$${state.money.unit}` : 'None';
+    const betTxt = state.money.playing ? ((state.money.type==='nassau'?'Nassau ':'Straight ') + (state.money.unit!==''? '$'+state.money.unit : '$—')) : 'None';
+    $('#betPill').textContent = betTxt;
 
-    // player tags
+    // Player tags
     const pt = $('#playerTags'); pt.innerHTML='';
-    state.players.slice(0,state.numPlayers).forEach((name,i)=>{
-      const tag = document.createElement('div');
-      tag.className='pill'; tag.textContent = name;
-      pt.appendChild(tag);
-    });
+    for(let i=0;i<state.numPlayers;i++){
+      const name = state.players[i] && state.players[i].trim() ? state.players[i].trim() : `Player ${i+1}`;
+      const tag = document.createElement('div'); tag.className='pill'; tag.textContent = name; pt.appendChild(tag);
+    }
 
-    // hole controls & keypads
+    // Hole nav
     $('#holeNum').textContent = state.hole;
+    $('#prevHole').onclick = ()=>{ state.hole = clamp(state.hole-1,1,state.holes); save(); renderScoring(); };
+    $('#nextHole').onclick = ()=>{ state.hole = clamp(state.hole+1,1,state.holes); save(); renderScoring(); };
+
+    // Keypads
     const keypads = $('#keypads'); keypads.innerHTML='';
     for(let i=0;i<state.numPlayers;i++){
-      const card = document.createElement('div');
-      card.className = 'card'; card.style.padding='12px';
+      const name = state.players[i] && state.players[i].trim() ? state.players[i].trim() : `Player ${i+1}`;
+      const card = document.createElement('div'); card.className='card'; card.style.padding='12px';
+
+      const cur = state.scores[state.hole-1]?.[i] ?? null;
       const head = document.createElement('div'); head.className='row'; head.style.justifyContent='space-between';
-      head.innerHTML = `<strong>${state.players[i]}</strong> <span class="badge">Hole ${state.hole} Score: ${state.scores[state.hole-1]?.[i]??'—'}</span>`;
+      head.innerHTML = `<strong>${name}</strong> <span class="badge score ${cur!=null?'selected':''}" data-role="score-badge">Hole ${state.hole} Score: ${cur??'—'}</span>`;
       card.appendChild(head);
+
       const grid = document.createElement('div'); grid.className='keypad';
-      for(let n=1;n<=10;n++){
-        const b = document.createElement('button'); b.className='btn'; b.textContent=n;
-        if(state.scores[state.hole-1]?.[i]===n) b.classList.add('primary');
-        b.onclick = ()=>{ setScore(state.hole-1,i,n); renderScoring(); };
-        grid.appendChild(b);
-      }
-      const clear = document.createElement('button'); clear.className='btn ghost'; clear.textContent='Clear';
-      clear.onclick = ()=>{ setScore(state.hole-1,i,null); renderScoring(); };
-      const row = document.createElement('div'); row.className='row'; row.style.marginTop='8px'; row.appendChild(clear);
+      const makeBtn = (label)=>{ const b=document.createElement('button'); b.className='btn'; b.textContent=label; return b; };
+      const setScoreAndRerender = (v)=>{ setScore(state.hole-1,i,v); renderScoring(); };
+
+      // Left arrow (2 -> 1 -> clear)
+      const left = makeBtn('←'); if(cur===1 || cur===2) left.classList.add('primary');
+      left.onclick = ()=>{ const c = state.scores[state.hole-1]?.[i];
+        if(c===2) setScoreAndRerender(1); else if(c===1) setScoreAndRerender(null); else setScoreAndRerender(2); };
+      grid.appendChild(left);
+
+      // 3,4,5,6
+      [3,4,5,6].forEach(n=>{ const b = makeBtn(String(n)); if(cur===n) b.classList.add('primary'); b.onclick = ()=> setScoreAndRerender(n); grid.appendChild(b); });
+
+      // Right arrow (7 -> 8 -> 9 -> 10 -> clear)
+      const right = makeBtn('→'); if([7,8,9,10].includes(cur)) right.classList.add('primary');
+      right.onclick = ()=>{ const c = state.scores[state.hole-1]?.[i];
+        if(c===7) setScoreAndRerender(8); else if(c===8) setScoreAndRerender(9);
+        else if(c===9) setScoreAndRerender(10); else if(c===10) setScoreAndRerender(null); else setScoreAndRerender(7); };
+      grid.appendChild(right);
+
+      // Clear
+      const clearBtn = document.createElement('button'); clearBtn.className='btn ghost'; clearBtn.textContent='Clear';
+      clearBtn.onclick = ()=> setScoreAndRerender(null);
+      const row = document.createElement('div'); row.className='row'; row.style.marginTop='8px'; row.appendChild(clearBtn);
+
       card.appendChild(grid); card.appendChild(row);
       keypads.appendChild(card);
     }
 
-    // prev/next
-    $('#prevHole').onclick = ()=>{ state.hole = clamp(state.hole-1,1,state.holes); save(); renderScoring(); };
-    $('#nextHole').onclick = ()=>{ state.hole = clamp(state.hole+1,1,state.holes); save(); renderScoring(); };
-
-    // grid + payouts
+    // Matrix + payouts
     renderMatchGrid();
     renderPayouts();
   }
@@ -392,123 +369,134 @@
     save();
   }
 
-  // ---------- Match Logic ----------
-  function pairs(){
-    const ps=[]; for(let i=0;i<state.numPlayers;i++){ for(let j=i+1;j<state.numPlayers;j++){ ps.push([i,j]); } }
-    return ps;
-  }
-
   function matchStatus(i,j, uptoHole = state.holes){
-    // returns {diff, text}
-    let diff = 0; // positive means i is up
+    let diff = 0;
     for(let h=0; h<uptoHole; h++){
       const a = state.scores[h]?.[i];
       const b = state.scores[h]?.[j];
       if(a!=null && b!=null){
-        if(a<b) diff += 1; else if(a>b) diff -= 1; // lower score wins hole
+        if(a<b) diff += 1; else if(a>b) diff -= 1;
       }
     }
     let text = 'AS';
-    if(diff>0) text = `${state.players[i]} ${Math.abs(diff)} Up`;
-    if(diff<0) text = `${state.players[j]} ${Math.abs(diff)} Up`;
+    if(diff>0) text = `${state.players[i] && state.players[i].trim()?state.players[i].trim():('Player '+(i+1))} ${Math.abs(diff)} Up`;
+    if(diff<0) text = `${state.players[j] && state.players[j].trim()?state.players[j].trim():('Player '+(j+1))} ${Math.abs(diff)} Up`;
     return {diff, text};
   }
 
-  function segmentWinner(i,j,start,end){
-    const {diff} = matchStatus(i,j,end);
-    const before = matchStatus(i,j,start-1).diff; // diff up to previous hole
-    const segDiff = diff - before; // net change across the segment
-    if(segDiff>0) return i; if(segDiff<0) return j; return null; // null = halved
-  }
-
+  /* ---- FIXED: True head-to-head matrix ---- */
   function renderMatchGrid(){
-    const grid = document.createElement('table');
-    const thead = document.createElement('thead');
-    const trh = document.createElement('tr');
-    trh.appendChild(document.createElement('th')); // corner
-    state.players.slice(0,state.numPlayers).forEach(n=>{
-      const th = document.createElement('th'); th.textContent=n; trh.appendChild(th);
-    });
-    thead.appendChild(trh); grid.appendChild(thead);
+    const container = document.getElementById('matchGrid');
+    if(!container) return;
 
+    container.innerHTML = '';
+
+    const table = document.createElement('table');
+    table.className = 'h2h';
+
+    // Header row
+    const thead = document.createElement('thead');
+    const hr = document.createElement('tr');
+    hr.appendChild(document.createElement('th')); // corner empty
+    for (let c = 0; c < state.numPlayers; c++){
+      const name = (state.players[c] && state.players[c].trim()) ? state.players[c].trim() : `Player ${c+1}`;
+      const th = document.createElement('th');
+      th.textContent = name;
+      hr.appendChild(th);
+    }
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    // Body rows
     const tbody = document.createElement('tbody');
-    for(let i=0;i<state.numPlayers;i++){
+    for (let r = 0; r < state.numPlayers; r++){
       const tr = document.createElement('tr');
-      const rowH = document.createElement('th'); rowH.textContent = state.players[i]; tr.appendChild(rowH);
-      for(let j=0;j<state.numPlayers;j++){
+
+      const rowName = (state.players[r] && state.players[r].trim()) ? state.players[r].trim() : `Player ${r+1}`;
+      const rowTh = document.createElement('th');
+      rowTh.textContent = rowName;
+      tr.appendChild(rowTh);
+
+      for (let c = 0; c < state.numPlayers; c++){
         const td = document.createElement('td');
-        if(i===j){ td.textContent='—'; td.className='self'; }
-        else if(j<i){ // mirror cell
-          td.textContent='';
+
+        if (r === c){
+          td.textContent = '—';
+          td.className = 'self';
         } else {
-          const {diff} = matchStatus(i,j, state.hole); // live status up to current hole
-          const span = document.createElement('span');
-          const label = diff===0 ? 'AS' : (diff>0? `${Math.abs(diff)} Up` : `${Math.abs(diff)} Down`);
-          span.className = 'badge ' + (diff===0?'as': diff>0?'up':'down');
-          span.textContent = label;
-          td.appendChild(span);
+          const { diff } = matchStatus(r, c, state.hole);
+          const badge = document.createElement('span');
+          const label = diff === 0 ? 'AS' : (diff > 0 ? `${Math.abs(diff)} Up` : `${Math.abs(diff)} Down`);
+          badge.className = 'badge ' + (diff === 0 ? 'as' : diff > 0 ? 'up' : 'down');
+          badge.textContent = label;
+          td.appendChild(badge);
         }
+
         tr.appendChild(td);
       }
+
       tbody.appendChild(tr);
     }
-    $('#matchGrid').innerHTML='';
-    $('#matchGrid').appendChild(grid);
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+  }
+
+  function segmentWinner(i,j,start,end){
+    const msEnd = matchStatus(i,j,end).diff;
+    const msBefore = matchStatus(i,j,start-1).diff;
+    const seg = msEnd - msBefore;
+    if(seg>0) return i; if(seg<0) return j; return null;
   }
 
   function renderPayouts(){
     if(!state.money.playing){ $('#payouts').textContent=''; return; }
     const unit = Number(state.money.unit||0);
     const lines=[];
-    const pr = pairs();
-
-    function pairName([i,j]){ return `${state.players[i]} vs ${state.players[j]}`; }
-
-    if(state.money.type==='straight'){
-      pr.forEach(p=>{
-        const [i,j] = p;
+    for(let i=0;i<state.numPlayers;i++){
+      for(let j=i+1;j<state.numPlayers;j++){
         const final = matchStatus(i,j, state.holes).diff;
-        let txt = `${pairName(p)} — `;
-        if(final>0) txt += `${state.players[i]} wins $${unit}`;
-        else if(final<0) txt += `${state.players[j]} wins $${unit}`;
-        else txt += `PUSH`;
+        let a = (state.players[i]&&state.players[i].trim())?state.players[i].trim():('Player '+(i+1));
+        let b = (state.players[j]&&state.players[j].trim())?state.players[j].trim():('Player '+(j+1));
+        let txt = `${a} vs ${b} — `;
+        if(state.money.type==='straight'){
+          if(final>0) txt += `${a} wins $${unit}`; else if(final<0) txt += `${b} wins $${unit}`; else txt += `PUSH`;
+        } else {
+          const segs = [ [1,9,'Front'], [10,18,'Back'], [1,18,'Overall'] ];
+          const parts = segs.map(([s,e,label])=>{
+            const w = segmentWinner(i,j,s,e);
+            if(w===null) return `${label}: PUSH`;
+            const nm = (state.players[w]&&state.players[w].trim())?state.players[w].trim():('Player '+(w+1));
+            return `${label}: ${nm} +$${unit}`;
+          });
+          txt += parts.join(' • ');
+        }
         lines.push(txt);
-      });
-    } else { // Nassau (18‑hole only)
-      const segs = [ [1,9,'Front'], [10,18,'Back'], [1,18,'Overall'] ];
-      pr.forEach(p=>{
-        const [i,j] = p; const parts=[];
-        segs.forEach(([s,e,label])=>{
-          const w = segmentWinner(i,j,s,e);
-          if(w===null) parts.push(`${label}: PUSH`);
-          else parts.push(`${label}: ${state.players[w]} +$${unit}`);
-        });
-        lines.push(`${pairName(p)} — ${parts.join(' • ')}`);
-      });
+      }
     }
-
     $('#payouts').innerHTML = '<strong>Payouts:</strong> ' + lines.join(' &nbsp; | &nbsp; ');
   }
 
-  // ---------- Resume / Reset ----------
+  // --------- Resume / Reset ---------
   function tryShowResume(){
     const saved = load();
-    if(saved){ $('#resumeBtn').style.display='inline-flex'; }
-    $('#resumeBtn').onclick = ()=>{
-      Object.assign(state, saved);
-      $('#wizard').hidden = true; $('#scoring').hidden = false;
-      renderScoring();
-    };
+    if(saved){
+      $('#resumeBtn').style.display='inline-flex';
+      $('#resumeBtn').onclick = ()=>{ Object.assign(state, saved); $('#step1').hidden=true; $('#step2').hidden=true; $('#step3').hidden=true; $('#scoring').hidden=false; renderScoring(); };
+    }
   }
+  $('#resetBtn').onclick = ()=>{ if(confirm('Reset and clear saved round?')){ clearStore(); location.reload(); } };
 
-  $('#resetBtn').onclick = ()=>{
-    if(confirm('Reset and clear saved round?')){ clearStore(); location.reload(); }
-  };
-
-  // ---------- Boot ----------
+  // --------- Boot ---------
   (function boot(){
-    renderStep1();
-    tryShowResume();
+    try{
+      showStep(1);
+      renderStep1();
+      tryShowResume();
+    }catch(e){
+      console.error(e);
+      alert('Init error: '+ e.message);
+    }
   })();
   </script>
 </body>
